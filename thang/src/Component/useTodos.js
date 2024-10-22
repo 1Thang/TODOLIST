@@ -1,71 +1,73 @@
-// Component/useTodos.js
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../Api/Api';
 
-const useTodos = (initialTodos = []) => {
-  const [todos, setTodos] = useState(initialTodos);
-  const [filter, setFilter] = useState('all');
-  const [visibleTodos, setVisibleTodos] = useState(5);
-  const listRef = useRef();
+const useTodos = () => {
+  const [todos, setTodos] = useState([]);
+  const [editingTodo, setEditingTodo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const addTodo = (text) => {
-    const newTodo = { id: Date.now(), text, completed: false };
-    setTodos((prevTodos) => [...prevTodos, newTodo]);
+  const fetchTodos = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/Products');
+      setTodos(response.data);
+    } catch {
+      setError('Failed to fetch todos');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleTodo = (id) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+  const addOrEditTodo = async (todo) => {
+    try {
+      if (todo.id) {
+        await api.put(`/Products/${todo.id}`, todo);
+        setTodos((prev) => prev.map((t) => (t.id === todo.id ? todo : t)));
+      } else {
+        const response = await api.post('/Products', todo);
+        setTodos((prev) => [...prev, response.data]);
+      }
+      setEditingTodo(null);
+    } catch {
+      setError('Failed to save todo');
+    }
   };
 
-  const updateTodoText = (id, newText) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, text: newText } : todo
-      )
-    );
+  const toggleCompleted = async (todo) => {
+    try {
+      const updatedTodo = { ...todo, completed: !todo.completed };
+      await api.put(`/Products/${todo.id}`, updatedTodo);
+      setTodos((prev) =>
+        prev.map((t) => (t.id === todo.id ? updatedTodo : t))
+      );
+    } catch {
+      setError('Failed to update todo status');
+    }
   };
 
-  const deleteTodo = (id) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
-  };
-
-  const deleteAll = () => setTodos([]);
-
-  const filteredTodos = () => {
-    if (filter === 'completed') return todos.filter((todo) => todo.completed);
-    if (filter === 'active') return todos.filter((todo) => !todo.completed);
-    return todos;
-  };
-
-  const loadMoreTodos = () => setVisibleTodos((prev) => prev + 5);
-
-  const handleScroll = () => {
-    const list = listRef.current;
-    if (list.scrollTop + list.clientHeight >= list.scrollHeight) {
-      loadMoreTodos();
+  const deleteTodo = async (id) => {
+    try {
+      await api.delete(`/Products/${id}`);
+      setTodos((prev) => prev.filter((t) => t.id !== id));
+    } catch {
+      setError('Failed to delete todo');
     }
   };
 
   useEffect(() => {
-    const list = listRef.current;
-    list.addEventListener('scroll', handleScroll);
-    return () => list.removeEventListener('scroll', handleScroll);
+    fetchTodos();
   }, []);
 
   return {
     todos,
-    visibleTodos,
-    filteredTodos,
-    addTodo,
-    toggleTodo,
-    updateTodoText,
+    addOrEditTodo,
+    toggleCompleted,
+    startEditing: setEditingTodo,
+    editingTodo,
     deleteTodo,
-    deleteAll,
-    setFilter,
-    listRef,
+    loading,
+    error,
   };
 };
 

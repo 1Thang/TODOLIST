@@ -3,24 +3,25 @@ import TodoItem from './TodoItem';
 import TodoForm from './TodoForm';
 import { ThemeContext } from './ThemeContext';
 import useTodos from './useTodos';
-import useThemeStyles from './useThemeStyles'; // Import the custom hook
+import useThemeStyles from './useThemeStyles';
 
 const TodoList = () => {
   const { toggleTheme } = useContext(ThemeContext);
   const {
     todos,
-    visibleTodos,
-    filteredTodos,
-    addTodo,
-    toggleTodo,
-    updateTodoText,
+    addOrEditTodo,
+    toggleCompleted,
+    startEditing,
+    editingTodo,
     deleteTodo,
-    deleteAll,
-    setFilter,
-    listRef,
+    loading,
+    error,
   } = useTodos();
 
-  const styles = useThemeStyles(); // Use the custom hook
+  const styles = useThemeStyles();
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
     <div style={styles.container}>
@@ -28,27 +29,20 @@ const TodoList = () => {
       <button onClick={toggleTheme}>
         Switch to {styles.container.color === 'black' ? 'Light' : 'Dark'} Mode
       </button>
-      <TodoForm addTodo={addTodo} />
-      <div ref={listRef} style={{ maxHeight: '300px', overflowY: 'auto' }}>
-        <ul>
-          {filteredTodos().slice(0, visibleTodos).map((todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              toggleTodo={toggleTodo}
-              updateTodoText={updateTodoText}
-              deleteTodo={deleteTodo}
-            />
-          ))}
-        </ul>
-        {visibleTodos < filteredTodos().length && <div>Loading more items...</div>}
-      </div>
-      <div style={{ marginTop: '10px' }}>
-        <button onClick={deleteAll}>Delete All</button>
-        <button onClick={() => setFilter('all')}>Show All</button>
-        <button onClick={() => setFilter('completed')}>Show Completed</button>
-        <button onClick={() => setFilter('active')}>Show Active</button>
-      </div>
+
+      <TodoForm addOrEditTodo={addOrEditTodo} editingTodo={editingTodo} />
+
+      <ul>
+        {todos.map((todo) => (
+          <TodoItem
+            key={todo.id}
+            todo={todo}
+            toggleCompleted={toggleCompleted}
+            startEditing={startEditing}
+            deleteTodo={deleteTodo}
+          />
+        ))}
+      </ul>
     </div>
   );
 };
