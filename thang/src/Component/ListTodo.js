@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import TodoItem from './TodoItem';
 import TodoForm from './TodoForm';
 import { ThemeContext } from './ThemeContext';
@@ -16,9 +16,19 @@ const TodoList = () => {
     deleteTodo,
     loading,
     error,
+    message, 
   } = useTodos();
 
   const styles = useThemeStyles();
+  const [visibleMessage, setVisibleMessage] = useState(''); 
+
+  useEffect(() => {
+    if (message) {
+      setVisibleMessage(message);
+      const timer = setTimeout(() => setVisibleMessage(''), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
@@ -29,6 +39,12 @@ const TodoList = () => {
       <button onClick={toggleTheme}>
         Switch to {styles.container.color === 'black' ? 'Light' : 'Dark'} Mode
       </button>
+
+      {visibleMessage && (
+        <div style={styles.message}>
+          <p>{visibleMessage}</p>
+        </div>
+      )}
 
       <TodoForm addOrEditTodo={addOrEditTodo} editingTodo={editingTodo} />
 
