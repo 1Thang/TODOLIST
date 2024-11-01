@@ -1,14 +1,15 @@
-// App.js
+// src/App.js
 import React from 'react';
-import { ThemeProvider } from './Component/ThemeContext';
-import TodoList from '../src/Component/ListTodo';
+import { Provider } from 'react-redux';
+import store from './store';
+import TodoList from './Component/ListTodo';
 import './App.css';
 
 function App() {
   return (
-    <ThemeProvider>
+    <Provider store={store}>
       <TodoList />
-    </ThemeProvider>
+    </Provider>
   );
 }
 

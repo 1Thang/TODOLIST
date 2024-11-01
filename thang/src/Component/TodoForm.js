@@ -1,9 +1,9 @@
+// src/Component/TodoForm.js
 import React, { useState, useEffect } from 'react';
 
 const TodoForm = ({ addOrEditTodo, editingTodo }) => {
-  const [name, setName] = useState(''); // Tên công việc
+  const [name, setName] = useState('');
 
-  // Cập nhật nội dung input nếu đang trong chế độ sửa
   useEffect(() => {
     if (editingTodo) {
       setName(editingTodo.name);
@@ -13,10 +13,8 @@ const TodoForm = ({ addOrEditTodo, editingTodo }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-
-    // Gọi hàm thêm hoặc sửa tùy thuộc vào trạng thái công việc
     addOrEditTodo({ ...editingTodo, name });
-    setName(''); // Xóa nội dung sau khi thêm/sửa
+    setName('');
   };
 
   return (
@@ -34,3 +32,4 @@ const TodoForm = ({ addOrEditTodo, editingTodo }) => {
 };
 
 export default TodoForm;
+  
